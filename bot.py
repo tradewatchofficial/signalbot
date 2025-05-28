@@ -1,14 +1,29 @@
-import discord
 import os
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import discord
 from dotenv import load_dotenv
 
-# .env 파일에서 DISCORD_TOKEN 불러오기
+# ─── 1) 아주 간단한 HTTP 서버 ───────────────────────────────────────────
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'OK')
+
+def run_webserver():
+    port = int(os.environ.get("PORT", 5000))
+    HTTPServer(("0.0.0.0", port), Handler).serve_forever()
+
+threading.Thread(target=run_webserver, daemon=True).start()
+# ──────────────────────────────────────────────────────────────────────
+
+# ─── 2) Discord 봇 로직 ─────────────────────────────────────────────────
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 
-# 디스코드 봇 기본 설정
 intents = discord.Intents.default()
-intents.message_content = True  # 사용자 메시지 읽기 위해 필수
+intents.message_content = True
 client = discord.Client(intents=intents)
 
 @client.event
